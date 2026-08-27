@@ -17,6 +17,11 @@ public class PayoutApprovalService {
         PayoutRequest payout = payoutRepository.findById(payoutId)
                 .orElseThrow(() -> new RuntimeException("Payout not found"));
 
+        // FIX: enforce segregation of duties: requester must not also be the approver
+        if (payout.getRequestedByUserId().equals(approvingUserId)) {
+            throw new PayoutApprovalException("Requester cannot approve their own payout");
+        }
+
         payout.setApprovalStatus("APPROVED");
         payout.setApprovedByUserId(approvingUserId);
         payoutRepository.save(payout);
